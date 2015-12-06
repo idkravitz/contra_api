@@ -1,0 +1,10 @@
+Building
+--------
+
+In order to build docker images you should start from project root and execute
+
+	docker -f docker/{image_name}/Dockerfile .
+
+Building behind a http proxy is also supported by chainging build command to
+
+	docker -f docker/{image_name}/Dockerfile --build-arg http_proxy={proxy:port} https_proxy={proxy:port} .

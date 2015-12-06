@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru" ng-app="tram">
+<head>
+<title>TRAM api stub page</title>
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/angular.min.js"></script>
+<script type="text/javascript" src="js/angular-cookies.min.js"></script>
+<script type="text/javascript" src="js/angular-file-upload.min.js"></script>
+<script type="text/javascript" src="js/angular-scroll.min.js"></script>
+<script type="text/javascript" src="js/controllers.js"></script>
+<style type="text/css">
+	[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+		display: none !important;
+	}
+	.inline_upload {
+		display: inline;
+	}
+	.Absolute-Center {
+  		margin: auto;
+  		position: absolute;
+  		top: 0; left: 0; bottom: 0; right: 0;
+	}
+	.Absolute-Center.is-Responsive {
+		width: 50%; 
+		height: 50%;
+		min-width: 200px;
+		max-width: 400px;
+		padding: 40px;
+	}
+</style>
+</head>
+<main ng-controller="mainCtrl">
+	<div class="container">
+	<div class="row">
+	<div ng-show="!isAuthorized()" ng-controller="authCtrl" class="Absolute-Center is-Responsive">
+		<div ng-show="useRegistration()">
+			<form class="col-sm-12 col-md-10 col-md-offset-1" novalidate>
+			<h1>Registration</h1>
+			<div class="form-group input-group">
+			    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+				<input type="text" class="form-control" placeholder="username" ng-model="user.username"/>
+			</div>
+			<div class="form-group input-group">
+	            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+				<input type="password" class="form-control" placeholder="password" ng-model="user.password"/>
+			</div>
+			<div class="form-group input-group">
+			    <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+				<input type="text" class="form-control" placeholder="e-mail" ng-model="user.email"/>
+			</div>
+	        <div class="form-group">
+				<button class="btn btn-def btn-block" ng-click="register(user)">Register</button>
+			</div>
+	        <div class="form-group">
+				or <a ng-click="signinBy('login')" href="#">[sign in]</a>
+			</div>
+			</form>
+		</div>
+		
+		<div ng-show="useLogin()">
+			<form class="col-sm-12 col-md-10 col-md-offset-1" novalidate>
+			<h1>Login</h1>
+			<div class="form-group input-group">
+			    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+				<input type="text" class="form-control" placeholder="username" ng-model="user.username"/>
+			</div>
+			<div class="form-group input-group">
+	            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+				<input type="password" class="form-control" placeholder="password" ng-model="user.password"/>
+			</div>
+	        <div class="form-group">
+				<button class="btn btn-def btn-block" ng-click="login(user)">Login</button>
+			</div>
+	        <div class="form-group">
+				or <a ng-click="signinBy('registration')" href="#">[register me]</a>
+			</div>
+			</form>
+		</div>
+	</div>
+	</div>
+
+	<div ng-show="isAuthorized()">
+		<div ng-controller="greeterCtrl">
+			<h1>Greetings {{user.username + ' (' + user.email + ')'}}<a href="#" ng-click="logout()">[Logout]</a></h1>
+		</div>
+		<p>
+			The idea is following: prior to calling the transims, you should upload data file and control file to our server, using the form below.<br/>
+			Then you click on Execute button and see your results.<br/>
+
+			Assumptions are following:<br/>
+			Your data file is archive of type: *.tar.gz, *.tar.bz2, *.tar.xz, *.7z, *.zip, *.rar<br/>
+			Your script is expected to run from the root of folder, that actually contains your files.<br/>
+			In other words, if your tree looks like:<br/>
+			/my-archive/file1<br/>
+			/my-archive/file2<br/>
+
+			Then the script is expected to run from /my-archive<br/>
+
+			Or if you have:<br/>
+			/a/b/c/file1<br/>
+			/a/b/c/file2<br/>
+
+			Then the script is expected to run from /a/b/c<br/>
+		</p>
+		<div ng-controller="dataUploadCtrl">
+		<!-- Table of uploads goes here -->
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>MD5</th>
+					<th>Upload date</th>
+					<th>Size</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in uploadedData">
+				<td><strong>{{ item.Filename }}</strong></td>
+				<td>{{ item.Md5 }} </td>
+				<td>{{ item.UploadDate }}</td>
+				<td>{{ item.Size }}</td>
+				<td><button type="button" class="btn btn-success" ng-show="selectedDataId != item.Id" ng-click="selectData(item.Id)">
+					<span class="glyphicon glyphicon-ok"></span> Use
+					</button>
+					<button type="button" class="btn btn-danger" ng-click="removeData(item.Id)">
+					<span class="glyphicon glyphicon-remove"></span> Remove
+					</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<form class="inline_upload">
+		Upload new data: <input style="display:inline" type="file" nv-file-select uploader="uploaderData" class="btn btn-success"/>
+		                <button type="button" class="btn btn-success btn-s" ng-click="uploaderData.uploadAll()" ng-disabled="!uploaderData.getNotUploadedItems().length">
+                <span class="glyphicon glyphicon-upload"></span> Upload
+                </button>
+
+		</form>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>MD5</th>
+					<th>Upload date</th>
+					<th>Size</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in uploadedControl">
+				<td><strong>{{ item.Filename }}</strong></td>
+				<td>{{ item.Md5 }} </td>
+				<td>{{ item.UploadDate }}</td>
+				<td>{{ item.Size }}</td>
+				<td><button type="button" class="btn btn-success" ng-show="selectedControlId != item.Id" ng-click="selectControl(item.Id)">
+					<span class="glyphicon glyphicon-ok"></span> Use
+					</button>
+					<button type="button" class="btn btn-danger" ng-click="removeControl(item.Id)">
+					<span class="glyphicon glyphicon-remove"></span> Remove
+					</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<form class="inline_upload">
+		Upload new control: <input style="display:inline" type="file" nv-file-select uploader="uploaderControl" class="btn btn-success"/>
+		        <button type="button" class="btn btn-success btn-s" ng-click="uploaderControl.uploadAll()" ng-disabled="!uploaderControl.getNotUploadedItems().length">
+                <span class="glyphicon glyphicon-upload"></span> Upload
+                </button>
+		</form>
+		<br/>
+		<button type="button" class="btn" ng-click="execute()" ng-disabled="!readyToExecute()">
+		<!-- Need a window here to display results
+		and a link to grab output -->
+		<span class="glyphicon glyphicon-upload"></span> Execute
+		</button>
+		<pre id="output">{{ task.Output }}</pre>
+		</div>
+		<!-- <div ng-controller="executeCtrl"> -->
+		
+		<!-- </div> -->
+	</div>
+	</div>
+</main>
+</body>
+</html>
