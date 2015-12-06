@@ -86,13 +86,13 @@
 			<h1>Greetings {{user.username + ' (' + user.email + ')'}}<a href="#" ng-click="logout()">[Logout]</a></h1>
 		</div>
 		<p>
-			The idea is following: prior to calling the transims, you should upload data file and control file to our server, using the form below.<br/>
-			Then you click on Execute button and see your results.<br/>
+			The idea is following: prior to calling the transims, you should upload data file and control file to our server, using the forms below.<br/>
+			Then you should click "use" buttons on appropriate data and control files in tables, and only then you click on Execute button and watch results.<br/>
 
 			Assumptions are following:<br/>
 			Your data file is archive of type: *.tar.gz, *.tar.bz2, *.tar.xz, *.7z, *.zip, *.rar<br/>
-			Your script is expected to run from the root of folder, that actually contains your files.<br/>
-			In other words, if your tree looks like:<br/>
+			Your script is expected to run by bash from the root of folder on server, that actually contains your files.<br/>
+			In other words, if your tree after unpacking would look like:<br/>
 			/my-archive/file1<br/>
 			/my-archive/file2<br/>
 
