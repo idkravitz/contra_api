@@ -51,7 +51,7 @@
 				<input type="email" class="form-control" name="email" placeholder="e-mail" ng-model="user.email" required />
 			</div>
 	        <div class="form-group">
-				<button class="btn btn-def btn-block" ng-click="register(user)">Register</button>
+				<button class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)">Register</button>
 			</div>
 	        <div class="form-group">
 				or <a ng-click="signinBy('login')" href="#">[sign in]</a>
