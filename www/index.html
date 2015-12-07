@@ -71,7 +71,7 @@
 				<input type="password" class="form-control" name="password" placeholder="password" ng-model="user.password" required />
 			</div>
 	        <div class="form-group">
-				<button class="btn btn-def btn-block" ng-click="login(user)">Login</button>
+				<button class="btn btn-def btn-block" ng-disabled="loginForm.$invalid" ng-click="login(user)">Login</button>
 			</div>
 	        <div class="form-group">
 				or <a ng-click="signinBy('registration')" href="#">[register me]</a>
