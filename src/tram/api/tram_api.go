@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"os"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	// "encoding/json"
 	"tram-commons/lib/util"
 	"tram-commons/lib/web"
+	"tram-commons/lib/db"
 	"tram-commons/lib/model"
 	"golang.org/x/crypto/bcrypt"
 
@@ -21,7 +21,6 @@ import (
 	)
 
 const SALT_SIZE int = 8
-const SESSION_TTL time.Duration = time.Hour * 24 * 2;
 
 type TramApiApp struct {
 	QCon *amqp.Connection
@@ -47,7 +46,7 @@ func (app *TramApiApp) upload_computation_data(response bson.M, req *http.Reques
 	s := app.MgoSession.Copy()
 	defer s.Close()
 	session := &model.Session{}
-	err := s.DB("tram").C("sessions").Find(bson.M{"sid": sid}).One(session)
+	err := db.GetCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
 	if err != nil {
 		log.Fatal(err) // stub
 	}
@@ -62,7 +61,7 @@ func (app *TramApiApp) upload_control_script(response bson.M, req *http.Request)
 	s := app.MgoSession.Copy()
 	defer s.Close()
 	session := &model.Session{}
-	err := s.DB("tram").C("sessions").Find(bson.M{"sid": sid}).One(session)
+	err := db.GetCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
 	if err != nil {
 		log.Fatal(err) // stub
 	}
@@ -110,9 +109,6 @@ func (app *TramApiApp) username_validator(username string) string {
 	return ""
 }
 
-func getCol(s *mgo.Session, colName string) *mgo.Collection {
-	return s.DB("tram").C(colName)
-}
 
 func getGridFS(s *mgo.Session, fsName string) *mgo.GridFS {
 	return s.DB("tram").GridFS(fsName)
@@ -140,13 +136,13 @@ func (app *TramApiApp) getUserSession(username string) (* model.Session) {
 	session := &model.Session{}
 	for !success {
 		success = true
-		err := getCol(s, "sessions").Find(bson.M{"username": username}).One(session)
+		err := db.GetCol(s, "sessions").Find(bson.M{"username": username}).One(session)
 		if err != nil {
 			success = false
 			session.Username = username
 			session.CreatedAt = time.Now()
 			session.Sid = getSid()
-			err = getCol(s, "sessions").Insert(session)
+			err = db.GetCol(s, "sessions").Insert(session)
 			if err != nil {
 				success = false;
 				if !mgo.IsDup(err) {
@@ -194,7 +190,7 @@ func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 
-	c := getCol(s, "users")
+	c := db.GetCol(s, "users")
 	mgo_err := c.Insert(user)
 	if mgo_err != nil {
 		if mgo.IsDup(mgo_err) {
@@ -213,7 +209,7 @@ func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
 
 func (app *TramApiApp) retrieveUserSession(s *mgo.Session, sid string) (session *model.Session) {
 	session = &model.Session{}
-	err := getCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
+	err := db.GetCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			session = nil
@@ -235,7 +231,7 @@ func (app *TramApiApp) get_user_info(response bson.M, req *http.Request) {
 		return
 	}
 	user := &model.User{}
-	getCol(s, "users").Find(bson.M{"username": session.Username}).One(user)
+	db.GetCol(s, "users").Find(bson.M{"username": session.Username}).One(user)
 	response["status"] = "ok"
 	response["user"] = bson.M{
 		"username": user.Username,
@@ -263,7 +259,7 @@ func (app *TramApiApp) login(response bson.M, req *http.Request) {
 	defer s.Close()
 	
 	user := &model.User{}
-	err := getCol(s, "users").Find(bson.M{"username": username}).One(user)
+	err := db.GetCol(s, "users").Find(bson.M{"username": username}).One(user)
 	if err != nil || bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
 		put_error(response, ERROR_BAD_PASSWORD_OR_USERNAME)
 		return
@@ -373,7 +369,7 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 		log.Fatal(err_ch)
 	}
 	defer ch.Close()
-	tasks := getCol(s, "tasks")
+	tasks := db.GetCol(s, "tasks")
 	task := model.Task{
 		Id: bson.NewObjectId(),
 		Output: "",
@@ -422,7 +418,7 @@ func (app *TramApiApp) getTaskStatus(response bson.M, r *http.Request) {
 	}
 
 	task := model.Task{}
-	err := getCol(s, "tasks").Find(bson.M{"_id": bson.ObjectIdHex(task_id)}).One(&task)
+	err := db.GetCol(s, "tasks").Find(bson.M{"_id": bson.ObjectIdHex(task_id)}).One(&task)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -442,7 +438,7 @@ func (app *TramApiApp) fetchFilesMeta(filestype string, sid string, response bso
 		return
 	}
 
-	dFiles := getCol(s, filestype + ".files")
+	dFiles := db.GetCol(s, filestype + ".files")
 
 	result := make([]model.FileShortMeta, 0, 10)
 	meta := map[string]interface{}{}
@@ -478,46 +474,23 @@ func (app *TramApiApp) Run() {
 
 	// MONGO INIT SECTION
 	// TODO: show error when env not set 
-	mongoSocket := os.ExpandEnv("tram-mongo:27017")
+	mongoSocket := "tram-mongo:27017"
 	log.Println("Connect to mongo at: ", mongoSocket)
-	session, err := mgo.Dial(mongoSocket)
+	session, err := db.MongoInitConnect(mongoSocket)
 	if err != nil {
         log.Fatal(err)
     }
     app.MgoSession = session
-    amqpSocket := os.ExpandEnv("amqp://$RABBIT_USER:$RABBIT_PASSWORD@tram-rabbit:5672")
+
+    rabbitUser := util.GetenvDefault("RABBIT_USER", "guest")
+    rabbitPassword := util.GetenvDefault("RABBIT_PASSWORD", "guest") 
+    amqpSocket := fmt.Sprintf("amqp://%v:%v@tram-rabbit:5672", rabbitUser, rabbitPassword)
     log.Println("Connect to amqp at: ", amqpSocket)
-    amqpCon, err2 := amqp.Dial(amqpSocket)
+    amqpCon, err2 := db.RabbitInitConnect(amqpSocket)
     if err2 != nil {
     	log.Fatal(err2)
     }
     app.QCon = amqpCon
-
-	session.SetSafe(&mgo.Safe{WMode: "majority"})
-	cUsers := getCol(session, "users")
-	cSessions := getCol(session, "sessions")
-    cUsers.EnsureIndex(mgo.Index{ Key: []string{"username"}, Unique: true})
-    cSessions.EnsureIndex(mgo.Index{ Key: []string{"sid"}, Unique: true})
-    cSessions.EnsureIndex(mgo.Index{ Key: []string{"username"}, Unique: true})
-    cSessions.EnsureIndex(mgo.Index{ Key: []string{"createdAt"}, ExpireAfter: SESSION_TTL})
-    dataFiles := getCol(session, "data.files")
-    dataFiles.EnsureIndex(mgo.Index{ Key: []string{"metadata.owner_username"}})
-    controlFiles := getCol(session, "control.files")
-    controlFiles.EnsureIndex(mgo.Index{ Key: []string{"metadata.owner_username"}})
-
-    ch, err3 := app.QCon.Channel()
-    if err3 != nil {
-    	log.Fatal(err3)
-    }
-    if _, err := ch.QueueDeclare("execution_queue", true, false, false, false, nil); err != nil {
-    	log.Fatal(err)
-    }
-    if err := ch.ExchangeDeclare("workers", "direct", true, false, false, false, nil); err != nil {
-    	log.Fatal(err)
-    }
-    if err := ch.QueueBind("execution_queue", "task", "workers", false, nil); err != nil {
-    	log.Fatal(err)
-    }
 
     // HTTP INIT SECTION
     apiBuilder := web.NewApiBuilder() // todo add config
