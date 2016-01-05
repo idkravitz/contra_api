@@ -10,7 +10,7 @@ RUN useradd -r -m tram
 USER tram
 WORKDIR /home/tram
 
-RUN mkdir bin src pkg src/tram src/tram-commons
+RUN mkdir bin src pkg
 ENV GOPATH /home/tram
 RUN go get gopkg.in/mgo.v2 && go get golang.org/x/crypto/bcrypt && go get github.com/streadway/amqp
 
@@ -18,11 +18,11 @@ USER root
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 USER tram
 
-ADD src/tram/api/ src/tram/api/
-ADD src/tram-commons/lib/ src/tram-commons/lib/
+ADD tram-api src/tram-api/
+ADD tram-commons src/tram-commons/
 ADD www/ www/
 
-RUN go install tram/api
+RUN go install tram-api
 EXPOSE 8080
 
-ENTRYPOINT ["./bin/api"]
+ENTRYPOINT ["./bin/tram-api"]
