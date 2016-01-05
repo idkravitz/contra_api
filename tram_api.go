@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"time"
 	// "encoding/json"
-	"github.com/kravitz/tram-api/tram-commons/db"
-	"github.com/kravitz/tram-api/tram-commons/model"
-	"github.com/kravitz/tram-api/tram-commons/util"
-	"github.com/kravitz/tram-api/tram-commons/web"
+	"github.com/kravitz/tram_api/tram-commons/db"
+	"github.com/kravitz/tram_api/tram-commons/model"
+	"github.com/kravitz/tram_api/tram-commons/util"
+	"github.com/kravitz/tram_api/tram-commons/web"
 
 	"golang.org/x/crypto/bcrypt"
 
