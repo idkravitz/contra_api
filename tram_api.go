@@ -21,28 +21,28 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-const SALT_SIZE int = 8
+const saltSize int = 8
 
-type TramApiApp struct {
+type tramAPIApp struct {
 	QCon           *amqp.Connection
 	MgoSession     *mgo.Session
 	UsernameRegexp *regexp.Regexp
 }
 
 const (
-	ERROR_USERNAME_TOO_SHORT       = "ERROR_USERNAME_TOO_SHORT"
-	ERROR_USERNAME_BAD_CHARACTERS  = "ERROR_USERNAME_BAD_CHARACTERS"
-	ERROR_PASSWORD_TOO_SHORT       = "ERROR_PASSWORD_TOO_SHORT"
-	ERROR_USER_EXISTS              = "ERROR_USER_EXISTS"
-	ERROR_BAD_PASSWORD_OR_USERNAME = "ERROR_BAD_PASSWORD_OR_USERNAME"
-	ERROR_BAD_SID                  = "ERROR_BAD_SID"
-	ERROR_FILE_NOT_FOUND           = "ERROR_FILE_NOT_FOUND"
-	ERROR_TASK_NOT_FOUND           = "ERROR_TASK_NOT_FOUND"
+	errorUsernameTooShort      = "ERROR_USERNAME_TOO_SHORT"
+	errorUsernameBadCharacters = "ERROR_USERNAME_BAD_CHARACTERS"
+	errorPasswordTooShort      = "ERROR_PASSWORD_TOO_SHORT"
+	errorUserExists            = "ERROR_USER_EXISTS"
+	errorBadPasswordOrUsername = "ERROR_BAD_PASSWORD_OR_USERNAME"
+	errorBadSid                = "ERROR_BAD_SID"
+	errorFileNotFound          = "ERROR_FILE_NOT_FOUND"
+	errorTaskNotFound          = "ERROR_TASK_NOT_FOUND"
 )
 
 // TODO 1: Storage location
 
-func (app *TramApiApp) upload_computation_data(response bson.M, req *http.Request) {
+func (app *tramAPIApp) uploadComputationData(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -51,13 +51,13 @@ func (app *TramApiApp) upload_computation_data(response bson.M, req *http.Reques
 	if err != nil {
 		log.Fatal(err) // stub
 	}
-	fid := app.upload_file(req, "file", "data", session.Username)
+	fid := app.uploadFile(req, "file", "data", session.Username)
 
 	response["status"] = "ok"
 	response["id"] = fid
 }
 
-func (app *TramApiApp) upload_control_script(response bson.M, req *http.Request) {
+func (app *tramAPIApp) uploadControlScript(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -66,13 +66,13 @@ func (app *TramApiApp) upload_control_script(response bson.M, req *http.Request)
 	if err != nil {
 		log.Fatal(err) // stub
 	}
-	fid := app.upload_file(req, "file", "control", session.Username)
+	fid := app.uploadFile(req, "file", "control", session.Username)
 
 	response["status"] = "ok"
 	response["id"] = fid
 }
 
-func (app *TramApiApp) upload_file(req *http.Request, formFile string, collection string, owner string) interface{} {
+func (app *tramAPIApp) uploadFile(req *http.Request, formFile string, collection string, owner string) interface{} {
 	file, header, err := req.FormFile(formFile)
 
 	if err != nil {
@@ -100,12 +100,12 @@ func (app *TramApiApp) upload_file(req *http.Request, formFile string, collectio
 	return out.Id()
 }
 
-func (app *TramApiApp) username_validator(username string) string {
+func (app *tramAPIApp) usernameValidator(username string) string {
 	if len(username) < 4 {
-		return ERROR_USERNAME_TOO_SHORT
+		return errorUsernameTooShort
 	}
 	if !app.UsernameRegexp.MatchString(username) {
-		return ERROR_USERNAME_BAD_CHARACTERS
+		return errorUsernameBadCharacters
 	}
 	return ""
 }
@@ -114,9 +114,9 @@ func getGridFS(s *mgo.Session, fsName string) *mgo.GridFS {
 	return s.DB("tram").GridFS(fsName)
 }
 
-func password_validator(password string) string {
+func passwordValidator(password string) string {
 	if len(password) < 6 {
-		return ERROR_PASSWORD_TOO_SHORT
+		return errorPasswordTooShort
 	}
 	return ""
 }
@@ -128,7 +128,7 @@ func getSid() string {
 	return string(sid)
 }
 
-func (app *TramApiApp) getUserSession(username string) *model.Session {
+func (app *tramAPIApp) getUserSession(username string) *model.Session {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 
@@ -155,26 +155,26 @@ func (app *TramApiApp) getUserSession(username string) *model.Session {
 	return session
 }
 
-func put_error(response bson.M, err string) {
+func putError(response bson.M, err string) {
 	response["status"] = "error"
 	response["error"] = err
 }
 
-func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
+func (app *tramAPIApp) userRegister(response bson.M, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	email := req.FormValue("email")
 
 	response["status"] = "ok"
 
-	err := app.username_validator(username)
+	err := app.usernameValidator(username)
 	if err != "" {
-		put_error(response, err)
+		putError(response, err)
 		return
 	}
-	err = password_validator(password)
+	err = passwordValidator(password)
 	if err != "" {
-		put_error(response, err)
+		putError(response, err)
 		return
 	}
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -191,23 +191,23 @@ func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
 	defer s.Close()
 
 	c := db.GetCol(s, "users")
-	mgo_err := c.Insert(user)
-	if mgo_err != nil {
-		if mgo.IsDup(mgo_err) {
-			put_error(response, ERROR_USER_EXISTS)
+	mgoErr := c.Insert(user)
+	if mgoErr != nil {
+		if mgo.IsDup(mgoErr) {
+			putError(response, errorUserExists)
 			return
 		}
-		log.Fatal(mgo_err)
+		log.Fatal(mgoErr)
 	}
 
-	user_session := app.getUserSession(username)
-	response["sid"] = user_session.Sid
+	userSession := app.getUserSession(username)
+	response["sid"] = userSession.Sid
 
 	log.Println(fmt.Sprintf("Register user: %v", util.Qjson(user)))
-	log.Println(fmt.Sprintf("His session is: %v", util.Qjson(user_session)))
+	log.Println(fmt.Sprintf("His session is: %v", util.Qjson(userSession)))
 }
 
-func (app *TramApiApp) retrieveUserSession(s *mgo.Session, sid string) (session *model.Session) {
+func (app *tramAPIApp) retrieveUserSession(s *mgo.Session, sid string) (session *model.Session) {
 	session = &model.Session{}
 	err := db.GetCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
 	if err != nil {
@@ -220,14 +220,14 @@ func (app *TramApiApp) retrieveUserSession(s *mgo.Session, sid string) (session 
 	return session
 }
 
-func (app *TramApiApp) get_user_info(response bson.M, req *http.Request) {
+func (app *tramAPIApp) getUserInfo(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
 
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 	user := &model.User{}
@@ -240,7 +240,7 @@ func (app *TramApiApp) get_user_info(response bson.M, req *http.Request) {
 	}
 }
 
-func (app *TramApiApp) logout(response bson.M, req *http.Request) {
+func (app *tramAPIApp) logout(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 
 	s := app.MgoSession.Copy()
@@ -250,7 +250,7 @@ func (app *TramApiApp) logout(response bson.M, req *http.Request) {
 	response["status"] = "ok"
 }
 
-func (app *TramApiApp) login(response bson.M, req *http.Request) {
+func (app *tramAPIApp) login(response bson.M, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	response["status"] = "ok"
@@ -261,16 +261,16 @@ func (app *TramApiApp) login(response bson.M, req *http.Request) {
 	user := &model.User{}
 	err := db.GetCol(s, "users").Find(bson.M{"username": username}).One(user)
 	if err != nil || bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
-		put_error(response, ERROR_BAD_PASSWORD_OR_USERNAME)
+		putError(response, errorBadPasswordOrUsername)
 		return
 	}
 
-	user_session := app.getUserSession(username)
-	response["sid"] = user_session.Sid
+	userSession := app.getUserSession(username)
+	response["sid"] = userSession.Sid
 	log.Println(fmt.Sprintf("User login: %v", user.Username))
 }
 
-func (app *TramApiApp) removeUploadedData(response bson.M, r *http.Request) {
+func (app *tramAPIApp) removeUploadedData(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	dfid := r.FormValue("data_file_id")
 
@@ -279,13 +279,13 @@ func (app *TramApiApp) removeUploadedData(response bson.M, r *http.Request) {
 
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 
 	meta := getFileMeta(s, "data", dfid)
 	if meta == nil || meta.Owner_Username != session.Username {
-		put_error(response, ERROR_FILE_NOT_FOUND)
+		putError(response, errorFileNotFound)
 		return
 	}
 
@@ -293,7 +293,7 @@ func (app *TramApiApp) removeUploadedData(response bson.M, r *http.Request) {
 	response["status"] = "ok"
 }
 
-func (app *TramApiApp) removeUploadedControl(response bson.M, r *http.Request) {
+func (app *tramAPIApp) removeUploadedControl(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	cfid := r.FormValue("control_file_id")
 
@@ -302,13 +302,13 @@ func (app *TramApiApp) removeUploadedControl(response bson.M, r *http.Request) {
 
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 
 	meta := getFileMeta(s, "control", cfid)
 	if meta == nil || meta.Owner_Username != session.Username {
-		put_error(response, ERROR_FILE_NOT_FOUND)
+		putError(response, errorFileNotFound)
 		return
 	}
 
@@ -316,14 +316,14 @@ func (app *TramApiApp) removeUploadedControl(response bson.M, r *http.Request) {
 	response["status"] = "ok"
 }
 
-type FileMetaTemp struct {
+type fileMetaTemp struct {
 	Metadata *model.FileDescription
 }
 
-func getFileMeta(s *mgo.Session, fsName string, fileId string) *model.FileDescription {
+func getFileMeta(s *mgo.Session, fsName string, fileID string) *model.FileDescription {
 	fs := getGridFS(s, fsName)
-	result := FileMetaTemp{}
-	err := fs.Find(bson.M{"_id": bson.ObjectIdHex(fileId)}).One(&result)
+	result := fileMetaTemp{}
+	err := fs.Find(bson.M{"_id": bson.ObjectIdHex(fileID)}).One(&result)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return nil
@@ -331,10 +331,9 @@ func getFileMeta(s *mgo.Session, fsName string, fileId string) *model.FileDescri
 		log.Fatal(err)
 	}
 	return result.Metadata
-	// json.Unmarshal()
 }
 
-func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
+func (app *tramAPIApp) enqueueExecute(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	dfid := r.FormValue("data_file_id")
 	cfid := r.FormValue("control_file_id")
@@ -343,28 +342,28 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 	defer s.Close()
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 
 	dfd := getFileMeta(s, "data", dfid)
 	if dfd == nil {
-		put_error(response, ERROR_FILE_NOT_FOUND)
+		putError(response, errorFileNotFound)
 		return
 	}
 	cfd := getFileMeta(s, "control", cfid)
 	if cfd == nil {
-		put_error(response, ERROR_FILE_NOT_FOUND)
+		putError(response, errorFileNotFound)
 	}
 
 	if dfd.Owner_Username != session.Username || cfd.Owner_Username != session.Username {
-		put_error(response, ERROR_FILE_NOT_FOUND)
+		putError(response, errorFileNotFound)
 		return
 	}
 
-	ch, err_ch := app.QCon.Channel()
-	if err_ch != nil {
-		log.Fatal(err_ch)
+	ch, errCh := app.QCon.Channel()
+	if errCh != nil {
+		log.Fatal(errCh)
 	}
 	defer ch.Close()
 	tasks := db.GetCol(s, "tasks")
@@ -385,9 +384,9 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 		DataFid:    dfid,
 		ControlFid: cfid,
 	}
-	bMsg, err_m := bson.Marshal(&msg)
-	if err_m != nil {
-		log.Fatal(err_m)
+	bMsg, errM := bson.Marshal(&msg)
+	if errM != nil {
+		log.Fatal(errM)
 	}
 	err = ch.Publish("workers", "task", true, false, amqp.Publishing{
 		Headers:         amqp.Table{},
@@ -404,35 +403,35 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 	response["task_id"] = task.Id
 }
 
-func (app *TramApiApp) getTaskStatus(response bson.M, r *http.Request) {
+func (app *tramAPIApp) getTaskStatus(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
-	task_id := r.FormValue("task_id")
+	taskID := r.FormValue("task_id")
 	s := app.MgoSession.Copy()
 	defer s.Close()
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 
 	task := model.Task{}
-	err := db.GetCol(s, "tasks").Find(bson.M{"_id": bson.ObjectIdHex(task_id)}).One(&task)
+	err := db.GetCol(s, "tasks").Find(bson.M{"_id": bson.ObjectIdHex(taskID)}).One(&task)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if task.Owner != session.Username {
-		put_error(response, ERROR_TASK_NOT_FOUND)
+		putError(response, errorTaskNotFound)
 		return
 	}
 	response["task"] = task
 }
 
-func (app *TramApiApp) fetchFilesMeta(filestype string, sid string, response bson.M) {
+func (app *tramAPIApp) fetchFilesMeta(filestype string, sid string, response bson.M) {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 	session := app.retrieveUserSession(s, sid)
 	if session == nil {
-		put_error(response, ERROR_BAD_SID)
+		putError(response, errorBadSid)
 		return
 	}
 
@@ -455,19 +454,19 @@ func (app *TramApiApp) fetchFilesMeta(filestype string, sid string, response bso
 	response["meta"] = result
 }
 
-func (app *TramApiApp) listUploadedData(response bson.M, r *http.Request) {
+func (app *tramAPIApp) listUploadedData(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	app.fetchFilesMeta("data", sid, response)
 	log.Println(util.Qjson(response))
 }
 
-func (app *TramApiApp) listUploadedControl(response bson.M, r *http.Request) {
+func (app *tramAPIApp) listUploadedControl(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	app.fetchFilesMeta("control", sid, response)
 	log.Println(util.Qjson(response))
 }
 
-func (app *TramApiApp) Run() {
+func (app *tramAPIApp) Run() {
 	app.UsernameRegexp, _ = regexp.Compile("^[_a-zA-Z][_0-9a-zA-Z]+")
 
 	// MONGO INIT SECTION
@@ -492,17 +491,17 @@ func (app *TramApiApp) Run() {
 
 	// HTTP INIT SECTION
 	apiBuilder := web.NewApiBuilder() // todo add config
-	apiBuilder.HandleJson("/user/register", app.user_register)
+	apiBuilder.HandleJson("/user/register", app.userRegister)
 	apiBuilder.HandleJson("/user/login", app.login)
 	apiBuilder.HandleJson("/user/logout", app.logout)
-	apiBuilder.HandleJson("/user/info", app.get_user_info)
+	apiBuilder.HandleJson("/user/info", app.getUserInfo)
 	apiBuilder.HandleJson("/uploads/data/list", app.listUploadedData)
-	apiBuilder.HandleJson("/uploads/data/add", app.upload_computation_data)
+	apiBuilder.HandleJson("/uploads/data/add", app.uploadComputationData)
 	apiBuilder.HandleJson("/uploads/data/remove", app.removeUploadedData)
 	apiBuilder.HandleJson("/uploads/control/list", app.listUploadedControl)
-	apiBuilder.HandleJson("/uploads/control/add", app.upload_control_script)
+	apiBuilder.HandleJson("/uploads/control/add", app.uploadControlScript)
 	apiBuilder.HandleJson("/uploads/control/remove", app.removeUploadedControl)
-	apiBuilder.HandleJson("/task/execute", app.enqueue_execute)
+	apiBuilder.HandleJson("/task/execute", app.enqueueExecute)
 	apiBuilder.HandleJson("/task/status", app.getTaskStatus)
 	apiBuilder.AddStaticDir("/js/")
 	mux := apiBuilder.Build()
@@ -511,13 +510,13 @@ func (app *TramApiApp) Run() {
 	http.ListenAndServe(":8080", mux)
 }
 
-func (app *TramApiApp) Stop() {
+func (app *tramAPIApp) Stop() {
 	app.MgoSession.Close()
 	app.QCon.Close()
 }
 
 func main() {
-	app := TramApiApp{}
+	app := tramAPIApp{}
 
 	defer app.Stop()
 	app.Run()
