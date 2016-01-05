@@ -1,42 +1,43 @@
 package main
 
 import (
-	"io"
+	"crypto/rand"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
 	"time"
-	"crypto/rand"
 	// "encoding/json"
-	"tram-commons/lib/util"
-	"tram-commons/lib/web"
-	"tram-commons/lib/db"
-	"tram-commons/lib/model"
+	"github.com/kravitz/tram-api/tram-commons/db"
+	"github.com/kravitz/tram-api/tram-commons/model"
+	"github.com/kravitz/tram-api/tram-commons/util"
+	"github.com/kravitz/tram-api/tram-commons/web"
+
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/streadway/amqp"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"github.com/streadway/amqp"
-	)
+)
 
 const SALT_SIZE int = 8
 
 type TramApiApp struct {
-	QCon *amqp.Connection
-	MgoSession *mgo.Session
+	QCon           *amqp.Connection
+	MgoSession     *mgo.Session
 	UsernameRegexp *regexp.Regexp
 }
 
 const (
-	ERROR_USERNAME_TOO_SHORT = "ERROR_USERNAME_TOO_SHORT"
-	ERROR_USERNAME_BAD_CHARACTERS = "ERROR_USERNAME_BAD_CHARACTERS"
-	ERROR_PASSWORD_TOO_SHORT = "ERROR_PASSWORD_TOO_SHORT"
-	ERROR_USER_EXISTS = "ERROR_USER_EXISTS"
+	ERROR_USERNAME_TOO_SHORT       = "ERROR_USERNAME_TOO_SHORT"
+	ERROR_USERNAME_BAD_CHARACTERS  = "ERROR_USERNAME_BAD_CHARACTERS"
+	ERROR_PASSWORD_TOO_SHORT       = "ERROR_PASSWORD_TOO_SHORT"
+	ERROR_USER_EXISTS              = "ERROR_USER_EXISTS"
 	ERROR_BAD_PASSWORD_OR_USERNAME = "ERROR_BAD_PASSWORD_OR_USERNAME"
-	ERROR_BAD_SID = "ERROR_BAD_SID"
-	ERROR_FILE_NOT_FOUND = "ERROR_FILE_NOT_FOUND"
-	ERROR_TASK_NOT_FOUND = "ERROR_TASK_NOT_FOUND"
+	ERROR_BAD_SID                  = "ERROR_BAD_SID"
+	ERROR_FILE_NOT_FOUND           = "ERROR_FILE_NOT_FOUND"
+	ERROR_TASK_NOT_FOUND           = "ERROR_TASK_NOT_FOUND"
 )
 
 // TODO 1: Storage location
@@ -87,7 +88,7 @@ func (app *TramApiApp) upload_file(req *http.Request, formFile string, collectio
 	out, _ := fs.Create("")
 	defer out.Close()
 
-	fd := &model.FileDescription{ Filename: header.Filename, Owner_Username: owner}
+	fd := &model.FileDescription{Filename: header.Filename, Owner_Username: owner}
 	out.SetMeta(fd)
 	_, err = io.Copy(out, file)
 	if err != nil {
@@ -109,13 +110,12 @@ func (app *TramApiApp) username_validator(username string) string {
 	return ""
 }
 
-
 func getGridFS(s *mgo.Session, fsName string) *mgo.GridFS {
 	return s.DB("tram").GridFS(fsName)
 }
 
 func password_validator(password string) string {
-	if (len(password) < 6) {
+	if len(password) < 6 {
 		return ERROR_PASSWORD_TOO_SHORT
 	}
 	return ""
@@ -128,7 +128,7 @@ func getSid() string {
 	return string(sid)
 }
 
-func (app *TramApiApp) getUserSession(username string) (* model.Session) {
+func (app *TramApiApp) getUserSession(username string) *model.Session {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 
@@ -144,15 +144,15 @@ func (app *TramApiApp) getUserSession(username string) (* model.Session) {
 			session.Sid = getSid()
 			err = db.GetCol(s, "sessions").Insert(session)
 			if err != nil {
-				success = false;
+				success = false
 				if !mgo.IsDup(err) {
 					log.Fatal(err)
 				}
 			}
 		}
 	}
-	
-	return session;
+
+	return session
 }
 
 func put_error(response bson.M, err string) {
@@ -165,26 +165,26 @@ func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
 	password := req.FormValue("password")
 	email := req.FormValue("email")
 
-	response["status"] = "ok";
+	response["status"] = "ok"
 
 	err := app.username_validator(username)
 	if err != "" {
 		put_error(response, err)
 		return
-	} 
+	}
 	err = password_validator(password)
 	if err != "" {
 		put_error(response, err)
 		return
-	} 
+	}
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	user := &model.User {
+	user := &model.User{
 		Username: username,
-		Email: email,
+		Email:    email,
 		Password: passwordHash,
-		Dor: time.Now(),
-		Banned: false,
+		Dor:      time.Now(),
+		Banned:   false,
 	}
 
 	s := app.MgoSession.Copy()
@@ -197,7 +197,7 @@ func (app *TramApiApp) user_register(response bson.M, req *http.Request) {
 			put_error(response, ERROR_USER_EXISTS)
 			return
 		}
-		log.Fatal(mgo_err)	
+		log.Fatal(mgo_err)
 	}
 
 	user_session := app.getUserSession(username)
@@ -235,9 +235,9 @@ func (app *TramApiApp) get_user_info(response bson.M, req *http.Request) {
 	response["status"] = "ok"
 	response["user"] = bson.M{
 		"username": user.Username,
-		"email": user.Email,
-		"dor": user.Dor,
-	};
+		"email":    user.Email,
+		"dor":      user.Dor,
+	}
 }
 
 func (app *TramApiApp) logout(response bson.M, req *http.Request) {
@@ -257,7 +257,7 @@ func (app *TramApiApp) login(response bson.M, req *http.Request) {
 
 	s := app.MgoSession.Copy()
 	defer s.Close()
-	
+
 	user := &model.User{}
 	err := db.GetCol(s, "users").Find(bson.M{"username": username}).One(user)
 	if err != nil || bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
@@ -334,7 +334,6 @@ func getFileMeta(s *mgo.Session, fsName string, fileId string) *model.FileDescri
 	// json.Unmarshal()
 }
 
-
 func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	dfid := r.FormValue("data_file_id")
@@ -347,14 +346,14 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 		put_error(response, ERROR_BAD_SID)
 		return
 	}
-	
+
 	dfd := getFileMeta(s, "data", dfid)
 	if dfd == nil {
 		put_error(response, ERROR_FILE_NOT_FOUND)
 		return
 	}
 	cfd := getFileMeta(s, "control", cfid)
-	if (cfd == nil) {
+	if cfd == nil {
 		put_error(response, ERROR_FILE_NOT_FOUND)
 	}
 
@@ -363,7 +362,6 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 		return
 	}
 
-
 	ch, err_ch := app.QCon.Channel()
 	if err_ch != nil {
 		log.Fatal(err_ch)
@@ -371,37 +369,37 @@ func (app *TramApiApp) enqueue_execute(response bson.M, r *http.Request) {
 	defer ch.Close()
 	tasks := db.GetCol(s, "tasks")
 	task := model.Task{
-		Id: bson.NewObjectId(),
-		Output: "",
-		Status: model.TASK_STATUS_PENDING,
-		Owner: session.Username,
-		DataFid: dfid,
+		Id:         bson.NewObjectId(),
+		Output:     "",
+		Status:     model.TASK_STATUS_PENDING,
+		Owner:      session.Username,
+		DataFid:    dfid,
 		ControlFid: cfid,
 	}
 	err := tasks.Insert(&task)
 	if err != nil {
 		log.Fatal(err)
 	}
-	msg := model.TaskMsg  {
-		TaskId: task.Id,
-		DataFid: dfid,
+	msg := model.TaskMsg{
+		TaskId:     task.Id,
+		DataFid:    dfid,
 		ControlFid: cfid,
 	}
 	bMsg, err_m := bson.Marshal(&msg)
 	if err_m != nil {
 		log.Fatal(err_m)
-	} 
+	}
 	err = ch.Publish("workers", "task", true, false, amqp.Publishing{
-		Headers: amqp.Table{},
-		ContentType: "application/json",
+		Headers:         amqp.Table{},
+		ContentType:     "application/json",
 		ContentEncoding: "UTF-8",
-		Body: bMsg,
-		DeliveryMode: amqp.Persistent,
-		})
+		Body:            bMsg,
+		DeliveryMode:    amqp.Persistent,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	response["status"] = "ok"
 	response["task_id"] = task.Id
 }
@@ -438,7 +436,7 @@ func (app *TramApiApp) fetchFilesMeta(filestype string, sid string, response bso
 		return
 	}
 
-	dFiles := db.GetCol(s, filestype + ".files")
+	dFiles := db.GetCol(s, filestype+".files")
 
 	result := make([]model.FileShortMeta, 0, 10)
 	meta := map[string]interface{}{}
@@ -446,10 +444,10 @@ func (app *TramApiApp) fetchFilesMeta(filestype string, sid string, response bso
 	iter := dFiles.Find(bson.M{"metadata.owner_username": session.Username}).Iter()
 	for iter.Next(&meta) {
 		fsm := model.FileShortMeta{
-			Id: meta["_id"].(bson.ObjectId).Hex(),
-			Md5: meta["md5"].(string),
-			Size: meta["length"].(int),
-			Filename: meta["metadata"].(map[string]interface{})["filename"].(string),
+			Id:         meta["_id"].(bson.ObjectId).Hex(),
+			Md5:        meta["md5"].(string),
+			Size:       meta["length"].(int),
+			Filename:   meta["metadata"].(map[string]interface{})["filename"].(string),
 			UploadDate: meta["uploadDate"].(time.Time),
 		}
 		result = append(result, fsm)
@@ -473,28 +471,28 @@ func (app *TramApiApp) Run() {
 	app.UsernameRegexp, _ = regexp.Compile("^[_a-zA-Z][_0-9a-zA-Z]+")
 
 	// MONGO INIT SECTION
-	// TODO: show error when env not set 
+	// TODO: show error when env not set
 	mongoSocket := "tram-mongo:27017"
 	log.Println("Connect to mongo at: ", mongoSocket)
 	session, err := db.MongoInitConnect(mongoSocket)
 	if err != nil {
-        log.Fatal(err)
-    }
-    app.MgoSession = session
+		log.Fatal(err)
+	}
+	app.MgoSession = session
 
-    rabbitUser := util.GetenvDefault("RABBIT_USER", "guest")
-    rabbitPassword := util.GetenvDefault("RABBIT_PASSWORD", "guest") 
-    amqpSocket := fmt.Sprintf("amqp://%v:%v@tram-rabbit:5672", rabbitUser, rabbitPassword)
-    log.Println("Connect to amqp at: ", amqpSocket)
-    amqpCon, err2 := db.RabbitInitConnect(amqpSocket)
-    if err2 != nil {
-    	log.Fatal(err2)
-    }
-    app.QCon = amqpCon
+	rabbitUser := util.GetenvDefault("RABBIT_USER", "guest")
+	rabbitPassword := util.GetenvDefault("RABBIT_PASSWORD", "guest")
+	amqpSocket := fmt.Sprintf("amqp://%v:%v@tram-rabbit:5672", rabbitUser, rabbitPassword)
+	log.Println("Connect to amqp at: ", amqpSocket)
+	amqpCon, err2 := db.RabbitInitConnect(amqpSocket)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	app.QCon = amqpCon
 
-    // HTTP INIT SECTION
-    apiBuilder := web.NewApiBuilder() // todo add config
-    apiBuilder.HandleJson("/user/register", app.user_register)
+	// HTTP INIT SECTION
+	apiBuilder := web.NewApiBuilder() // todo add config
+	apiBuilder.HandleJson("/user/register", app.user_register)
 	apiBuilder.HandleJson("/user/login", app.login)
 	apiBuilder.HandleJson("/user/logout", app.logout)
 	apiBuilder.HandleJson("/user/info", app.get_user_info)
