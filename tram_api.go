@@ -72,6 +72,7 @@ func (app *tramAPIApp) uploadControlScript(response bson.M, req *http.Request) {
 	response["id"] = fid
 }
 
+// TODO make fixed type return
 func (app *tramAPIApp) uploadFile(req *http.Request, formFile string, collection string, owner string) interface{} {
 	file, header, err := req.FormFile(formFile)
 
@@ -84,7 +85,7 @@ func (app *tramAPIApp) uploadFile(req *http.Request, formFile string, collection
 
 	s := app.MgoSession.Copy()
 	defer s.Close()
-	fs := s.DB("tram").GridFS(collection)
+	fs := db.GetGridFS(s, collection)
 	out, _ := fs.Create("")
 	defer out.Close()
 

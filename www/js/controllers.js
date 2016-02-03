@@ -118,6 +118,7 @@ app.controller('dataUploadCtrl', ['$scope', '$document', '$http', '$timeout', 'F
 	};
 	$scope.pollTaskStatus = function() {
 		httpPost($http, 'task/status', {"sid": $scope.sid, "task_id": $scope.task.id}).success(function(response) {
+			console.log(response)
 			$scope.task = response.task;
 			if ($scope.task.Status == 'pending') {
 				$timeout($scope.pollTaskStatus, 3000);
