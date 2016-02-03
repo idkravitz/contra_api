@@ -110,10 +110,6 @@ func (app *tramAPIApp) usernameValidator(username string) string {
 	return ""
 }
 
-func getGridFS(s *mgo.Session, fsName string) *mgo.GridFS {
-	return s.DB("tram").GridFS(fsName)
-}
-
 func passwordValidator(password string) string {
 	if len(password) < 6 {
 		return errorPasswordTooShort
@@ -289,7 +285,7 @@ func (app *tramAPIApp) removeUploadedData(response bson.M, r *http.Request) {
 		return
 	}
 
-	getGridFS(s, "data").RemoveId(bson.ObjectIdHex(dfid))
+	db.GetGridFS(s, "data").RemoveId(bson.ObjectIdHex(dfid))
 	response["status"] = "ok"
 }
 
@@ -312,7 +308,7 @@ func (app *tramAPIApp) removeUploadedControl(response bson.M, r *http.Request) {
 		return
 	}
 
-	getGridFS(s, "control").RemoveId(bson.ObjectIdHex(cfid))
+	db.GetGridFS(s, "control").RemoveId(bson.ObjectIdHex(cfid))
 	response["status"] = "ok"
 }
 
@@ -321,7 +317,7 @@ type fileMetaTemp struct {
 }
 
 func getFileMeta(s *mgo.Session, fsName string, fileID string) *model.FileDescription {
-	fs := getGridFS(s, fsName)
+	fs := db.GetGridFS(s, fsName)
 	result := fileMetaTemp{}
 	err := fs.Find(bson.M{"_id": bson.ObjectIdHex(fileID)}).One(&result)
 	if err != nil {
