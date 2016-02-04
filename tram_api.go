@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 	// "encoding/json"
 	"github.com/kravitz/tram_api/tram-commons/db"
@@ -423,6 +424,42 @@ func (app *tramAPIApp) getTaskStatus(response bson.M, r *http.Request) {
 	response["task"] = task
 }
 
+func (app *tramAPIApp) downloadTaskOutput(w http.ResponseWriter, r *http.Request) {
+	lastSlashIdx := strings.LastIndex(r.RequestURI, "/") + 1
+	hexID := r.RequestURI[lastSlashIdx:]
+
+	s := app.MgoSession.Copy()
+	defer s.Close()
+
+	// session := app.retrieveUserSession(s, sid)
+	// if session == nil {
+
+	// }
+
+	task := model.Task{}
+	err := db.GetCol(s, "tasks").FindId(bson.ObjectIdHex(hexID)).One(&task)
+	if err != nil {
+		//
+	}
+	if len(task.OutputFid) == 0 {
+		//
+	}
+	fh, err := db.GetGridFS(s, "output").OpenId(bson.ObjectIdHex(task.OutputFid))
+	if err != nil {
+
+	}
+
+	meta := bson.M{}
+	fh.GetMeta(&meta)
+	outFilename := meta["filename"].(string)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+outFilename)
+	w.Header().Set("Content-Length", string(fh.Size()))
+	w.Header().Set("Content-Type", "application/gzip")
+
+	io.Copy(w, fh)
+}
+
 func (app *tramAPIApp) fetchFilesMeta(filestype string, sid string, response bson.M) {
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -500,6 +537,8 @@ func (app *tramAPIApp) Run() {
 	apiBuilder.HandleJson("/uploads/control/remove", app.removeUploadedControl)
 	apiBuilder.HandleJson("/task/execute", app.enqueueExecute)
 	apiBuilder.HandleJson("/task/status", app.getTaskStatus)
+	apiBuilder.HandleFunc("/task/download_output/", app.downloadTaskOutput)
+	// apiBuilder.
 	apiBuilder.AddStaticDir("/js/")
 	mux := apiBuilder.Build()
 

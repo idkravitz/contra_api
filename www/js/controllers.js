@@ -113,18 +113,26 @@ app.controller('dataUploadCtrl', ['$scope', '$document', '$http', '$timeout', 'F
 		}
 	});
 	$scope.task = {};
+	$scope.outputDownloadUrl = '';
 	$scope.readyToExecute = function() {
 		return $scope.selectedDataId !== false && $scope.selectedControlId !== false;
+	};
+	$scope.hasDownloadableOutput = function() {
+		return $scope.outputDownloadUrl.length > 0;
 	};
 	$scope.pollTaskStatus = function() {
 		httpPost($http, 'task/status', {"sid": $scope.sid, "task_id": $scope.task.id}).success(function(response) {
 			console.log(response)
 			$scope.task = response.task;
 			if ($scope.task.Status == 'pending') {
+				$scope.outputDownloadUrl = '';
 				$timeout($scope.pollTaskStatus, 3000);
 			} else {
 				elem = angular.element(document.getElementById('output'));
 				$document.scrollToElement(elem, 0, 2000);
+				if ($scope.task.output_fid.length > 0) {
+					$scope.outputDownloadUrl = 'task/download_output/' + $scope.task.id;
+				}
 			}
 		})
 	};

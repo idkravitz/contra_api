@@ -23,7 +23,7 @@
   		top: 0; left: 0; bottom: 0; right: 0;
 	}
 	.Absolute-Center.is-Responsive {
-		width: 50%; 
+		width: 50%;
 		height: 50%;
 		min-width: 200px;
 		max-width: 400px;
@@ -58,7 +58,7 @@
 			</div>
 			</form>
 		</div>
-		
+
 		<div ng-show="useLogin()">
 			<form name="loginForm" class="col-sm-12 col-md-10 col-md-offset-1">
 			<h1>Login</h1>
@@ -173,15 +173,12 @@
 		</form>
 		<br/>
 		<button type="button" class="btn" ng-click="execute()" ng-disabled="!readyToExecute()">
-		<!-- Need a window here to display results
-		and a link to grab output -->
 		<span class="glyphicon glyphicon-upload"></span> Execute
 		</button>
+		<a class="btn btn-default" href="{{ outputDownloadUrl }}" target="_blank" ng-disabled="!hasDownloadableOutput()">
+			<span class="glyphicon glyphicon-download"></span> Download output</a>
 		<pre id="output">{{ task.Output }}</pre>
 		</div>
-		<!-- <div ng-controller="executeCtrl"> -->
-		
-		<!-- </div> -->
 	</div>
 	</div>
 </main>
