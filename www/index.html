@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" ng-app="tram">
 <head>
-<title>TRAM api stub page</title>
+<title>CONTRA</title>
 <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
 <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
 <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
@@ -85,25 +85,26 @@
 		<div ng-controller="greeterCtrl">
 			<h1>Greetings {{user.username + ' (' + user.email + ')'}}<a href="#" ng-click="logout()">[Logout]</a></h1>
 		</div>
+		<h3>Quick start</h3>
 		<p>
-			The idea is following: prior to calling the transims, you should upload data file and control file to our server, using the forms below.<br/>
-			Then you should click "use" buttons on appropriate data and control files in tables, and only then you click on Execute button and watch results.<br/>
-
-			Assumptions are following:<br/>
-			Your data file is archive of type: *.tar.gz, *.tar.bz2, *.tar.xz, *.7z, *.zip, *.rar<br/>
-			Your script is expected to run by bash from the root of folder on server, that actually contains your files.<br/>
-			In other words, if your tree after unpacking would look like:<br/>
-			/my-archive/file1<br/>
-			/my-archive/file2<br/>
-
-			Then the script is expected to run from /my-archive<br/>
-
-			Or if you have:<br/>
-			/a/b/c/file1<br/>
-			/a/b/c/file2<br/>
-
-			Then the script is expected to run from /a/b/c<br/>
+			<b>Step 1:</b> Pack, compress and upload data and command files to our server.
+			Accepted data file formats:  *.tar.gz, *.7z<!--*.tar.gz, *.tar.bz2, *.tar.xz, *.7z, *.zip, *.rar-->
+			Command file need not be compressed.<br/>
+			<b>Step 2:</b> Click "use"  on data and command files.<br/>
+			<b>Step 3:</b> Click "Execute" and enjoy the results.<br/>
+			<br/>
+			Your command file will be run by <i>bash</i> from the root of the data archive.
+			In other words, if your file tree after unpacking would look like
+<pre>/my-archive/
+/my-archive/file2</pre>
+			Then the script is expected to run from <code>/my-archive/</code>
+			Or if you have:
+<pre>/a/b/c/file1
+/a/b/d/file2</pre>
+			Then the script is expected to run from <code>/a/b/</code>
 		</p>
+		<hr/>
+
 		<div ng-controller="dataUploadCtrl">
 		<!-- Table of uploads goes here -->
 		<table class="table">
