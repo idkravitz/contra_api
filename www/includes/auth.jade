@@ -11,74 +11,74 @@ div(style="margin-top: 10px" class="row")
     div(class="col-md-4")
       div(ng-show="useRegistration()")
         form(name="registrationForm" class="col-sm-12 col-md-10 col-md-offset-1")
-        h1(align="center") Register
-        div(ng-class="{ 'has-error': registrationForm.username.$touched && registrationForm.username.$invalid }")
-          div(class="form-group input-group")
-              span(class="input-group-addon"): i(class="glyphicon glyphicon-user")
-              input(type="text" name="username" class="form-control" placeholder="username"
-            ng-model="user.username"
-            ng-minlength="4"
-            ng-maxlength="20"
-            required)
-          div(class="help-block" ng-messages="registrationForm.username.$error" ng-if="registrationForm.username.$touched")
-            p(ng-message="minlength") Provided username is too short.
-            p(ng-message="maxlength") Provided username is too long.
-            p(ng-message="required") Username is required.
-        div(ng-class="{ 'has-error': registrationForm.password.$touched && registrationForm.password.$invalid }")
-          div(class="form-group input-group")
-            span(class="input-group-addon"): i(class="glyphicon glyphicon-lock")
-            input(type="password" class="form-control" name="password" placeholder="password"
-              ng-model="user.password"
-              ng-minlength="6"
-              ng-maxlength="32"
+          h1(align="center") Register
+          div(ng-class="{ 'has-error': registrationForm.username.$touched && registrationForm.username.$invalid }")
+            div(class="form-group input-group")
+                span(class="input-group-addon"): i(class="glyphicon glyphicon-user")
+                input(type="text" name="username" class="form-control" placeholder="username"
+              ng-model="user.username"
+              ng-minlength="4"
+              ng-maxlength="20"
               required)
-          div(class="help-block" ng-messages="registrationForm.password.$error" ng-if="registrationForm.password.$touched")
-            p(ng-message="minlength") Provided password is too short.
-            p(ng-message="maxlength") Provided password is too long.
-            p(ng-message="required") Password is required.
-        div(ng-class="{ 'has-error': registrationForm.email.$touched && registrationForm.email.$invalid }")
-          div(class="form-group input-group")
-            span(class="input-group-addon"): i(class="glyphicon glyphicon-envelope")
-            input(type="email" class="form-control" name="email" placeholder="e-mail"
-              ng-model="user.email"
-              required)
-          div(class="help-block" ng-messages="registrationForm.email.$error" ng-if="registrationForm.email.$touched")
-            p(ng-message="email") Wrong email format.
-            p(ng-message="required") Email is required.
-        div(class="form-group")
-          button(class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)") Register
-        div(class="form-group") or <a ng-click="signinBy('login')" href="#">[sign in]</a>
+            div(class="help-block" ng-messages="registrationForm.username.$error" ng-if="registrationForm.username.$touched")
+              p(ng-message="minlength") Provided username is too short.
+              p(ng-message="maxlength") Provided username is too long.
+              p(ng-message="required") Username is required.
+          div(ng-class="{ 'has-error': registrationForm.password.$touched && registrationForm.password.$invalid }")
+            div(class="form-group input-group")
+              span(class="input-group-addon"): i(class="glyphicon glyphicon-lock")
+              input(type="password" class="form-control" name="password" placeholder="password"
+                ng-model="user.password"
+                ng-minlength="6"
+                ng-maxlength="32"
+                required)
+            div(class="help-block" ng-messages="registrationForm.password.$error" ng-if="registrationForm.password.$touched")
+              p(ng-message="minlength") Provided password is too short.
+              p(ng-message="maxlength") Provided password is too long.
+              p(ng-message="required") Password is required.
+          div(ng-class="{ 'has-error': registrationForm.email.$touched && registrationForm.email.$invalid }")
+            div(class="form-group input-group")
+              span(class="input-group-addon"): i(class="glyphicon glyphicon-envelope")
+              input(type="email" class="form-control" name="email" placeholder="e-mail"
+                ng-model="user.email"
+                required)
+            div(class="help-block" ng-messages="registrationForm.email.$error" ng-if="registrationForm.email.$touched")
+              p(ng-message="email") Wrong email format.
+              p(ng-message="required") Email is required.
+          div(class="form-group")
+            button(class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)") Register
+          div(class="form-group") or <a ng-click="signinBy('login')" href="#">[sign in]</a>
 
       div(ng-show="useLogin()")
         form(name="loginForm" class="col-sm-12 col-md-10 col-md-offset-1")
-        h1(align="center") Login
-        div(ng-class="{ 'has-error': loginForm.username.$touched && loginForm.username.$invalid }")
-          div(class="form-group input-group")
-            span(class="input-group-addon"): i(class="glyphicon glyphicon-user")
-            input(type="text" class="form-control" name="username" placeholder="username"
-            ng-model="user.username"
-            ng-minlength="4"
-            ng-maxlength="20"
-            required)
-
-          div(class="help-block" ng-messages="loginForm.username.$error" ng-if="loginForm.username.$touched")
-            p(ng-message="minlength") Provided username is too short.
-            p(ng-message="maxlength") Provided username is too long.
-            p(ng-message="required") Username is required.
-        div(ng-class="{ 'has-error': loginForm.password.$touched && loginForm.password.$invalid }")
-          div(class="form-group input-group")
-            span(class="input-group-addon"): i(class="glyphicon glyphicon-lock")
-            input(type="password" class="form-control" name="password" placeholder="password"
-              ng-model="user.password"
-              ng-minlength="6"
-              ng-maxlength="32"
+          h1(align="center") Login
+          div(ng-class="{ 'has-error': loginForm.username.$touched && loginForm.username.$invalid }")
+            div(class="form-group input-group")
+              span(class="input-group-addon"): i(class="glyphicon glyphicon-user")
+              input(type="text" class="form-control" name="username" placeholder="username"
+              ng-model="user.username"
+              ng-minlength="4"
+              ng-maxlength="20"
               required)
 
-          div(class="help-block" ng-messages="loginForm.password.$error" ng-if="loginForm.password.$touched")
-            p(ng-message="minlength") Provided password is too short.
-            p(ng-message="maxlength") Provided password is too long.
-            p(ng-message="required") Password is required.
+            div(class="help-block" ng-messages="loginForm.username.$error" ng-if="loginForm.username.$touched")
+              p(ng-message="minlength") Provided username is too short.
+              p(ng-message="maxlength") Provided username is too long.
+              p(ng-message="required") Username is required.
+          div(ng-class="{ 'has-error': loginForm.password.$touched && loginForm.password.$invalid }")
+            div(class="form-group input-group")
+              span(class="input-group-addon"): i(class="glyphicon glyphicon-lock")
+              input(type="password" class="form-control" name="password" placeholder="password"
+                ng-model="user.password"
+                ng-minlength="6"
+                ng-maxlength="32"
+                required)
 
-        div(class="form-group")
-          button(class="btn btn-def btn-block" ng-disabled="loginForm.$invalid" ng-click="login(user)") Login
-        div(class="form-group") or <a ng-click="signinBy('registration')" href="#">[register me]</a>
+            div(class="help-block" ng-messages="loginForm.password.$error" ng-if="loginForm.password.$touched")
+              p(ng-message="minlength") Provided password is too short.
+              p(ng-message="maxlength") Provided password is too long.
+              p(ng-message="required") Password is required.
+
+          div(class="form-group")
+            button(class="btn btn-def btn-block" ng-disabled="loginForm.$invalid" ng-click="login(user)") Login
+          div(class="form-group") or <a ng-click="signinBy('registration')" href="#">[register me]</a>
