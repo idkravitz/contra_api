@@ -1,0 +1,56 @@
+doctype html
+html(lang="ru" ng-app="tram")
+  head
+    title CONTRA
+    link(rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css")
+    script(src="http://code.jquery.com/jquery-1.8.3.min.js")
+    script(src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js")
+    script(src="js/angular.min.js")
+    script(src="js/angular-cookies.min.js")
+    script(src="js/angular-file-upload.min.js")
+    script(src="js/angular-scroll.min.js")
+    script(src="js/angular-messages.min.js")
+    script(src="js/controllers.js")
+    style(type="text/css").
+      [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+        display: none !important;
+      }
+      .inline_upload {
+        display: inline;
+      }
+  body
+    main(ng-controller="mainCtrl")
+      div(class="container")
+        include ./includes/auth.jade
+        
+        div(ng-show="isAuthorized()")
+          div(class="page-header" ng-controller="greeterCtrl")
+            h1 Greetings {{ user.username }} <small>&lt;{{ user.email }}&gt;</small> 
+              button(class="btn btn-def" ng-click="logout()")
+                span(class="glyphicon glyphicon-off")
+                |  Logout
+          h3 Quick start
+          p
+            b Step 1: 
+            | Pack, compress and upload data and command files to our server.
+            | Accepted data file formats: *.tar.gz, *.7z
+            // *.tar.gz, *.tar.bz2, *.tar.xz, *.7z, *.zip, *.rar
+            | A command file needs not to be compressed.<br/>
+            b Step 2: 
+            | Click "use" on data and command files.<br/>
+            b Step 3: 
+            | Click "Execute" and enjoy the results.<br/><br/>
+            | Your command file will be run by <i>bash</i> from the root of the data archive.
+            | In other words, if your file tree after unpacking looks like
+            pre /my-archive/
+              | /my-archive/file2
+            | then the script is expected to run from <code>/my-archive/</code>.
+            | Or if you have:
+            pre /a/b/c/file1
+              | /a/b/d/file2
+            | Then the script is expected to run from <code>/a/b/</code>
+          hr/
+              
+        //- 
+    //- h1 My Site
+    //- p Welcome to my super lame site.
