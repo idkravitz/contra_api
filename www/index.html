@@ -36,18 +36,49 @@
 		<div class="col-md-4">
 			<div ng-show="useRegistration()">
 				<form name="registrationForm" class="col-sm-12 col-md-10 col-md-offset-1">
-				<h1>Registration</h1>
-				<div ng-class="{ 'has-error': registrationForm.username.$invalid }" class="form-group input-group" show-errors>
-				    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-					<input type="text" name="username" class="form-control" placeholder="username" ng-model="user.username" required />
+				<h1 align="center">Register</h1>
+				<div ng-class="{ 'has-error': registrationForm.username.$touched && registrationForm.username.$invalid }">
+					<div class="form-group input-group">
+				  <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+					<input type="text" name="username" class="form-control" placeholder="username"
+						ng-model="user.username"
+						ng-minlength="4"
+						ng-maxlength="20"
+						required />
+					</div>
+
+					<div class="help-block" ng-messages="registrationForm.username.$error" ng-if="registrationForm.username.$touched">
+						<p ng-message="minlength">Provided username is too short.</p>
+						<p ng-message="maxlength">Provided username is too long.</p>
+					  <p ng-message="required">Username is required.</p>
+					</div>
 				</div>
-				<div ng-class="{ 'has-error': registrationForm.password.$invalid }" class="form-group input-group" show-errors>
-		            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-					<input type="password" class="form-control" name="password" placeholder="password" ng-model="user.password" required />
+				<div ng-class="{ 'has-error': registrationForm.password.$touched && registrationForm.password.$invalid }">
+					<div class="form-group input-group">
+		      	<span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+						<input type="password" class="form-control" name="password" placeholder="password"
+							ng-model="user.password"
+							ng-minlength="6"
+							ng-maxlength="32"
+							required />
+					</div>
+					<div class="help-block" ng-messages="registrationForm.password.$error" ng-if="registrationForm.password.$touched">
+						<p ng-message="minlength">Provided password is too short.</p>
+						<p ng-message="maxlength">Provided password is too long.</p>
+						<p ng-message="required">Password is required.</p>
+					</div>
 				</div>
-				<div ng-class="{ 'has-error': registrationForm.email.$invalid }" class="form-group input-group" show-errors>
-				    <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
-					<input type="email" class="form-control" name="email" placeholder="e-mail" ng-model="user.email" required />
+				<div ng-class="{ 'has-error': registrationForm.email.$touched && registrationForm.email.$invalid }">
+					<div class="form-group input-group">
+					  <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+						<input type="email" class="form-control" name="email" placeholder="e-mail"
+							ng-model="user.email"
+							required />
+					</div>
+					<div class="help-block" ng-messages="registrationForm.email.$error" ng-if="registrationForm.email.$touched">
+						<p ng-message="email">Wrong email format.</p>
+						<p ng-message="required">Email is required.</p>
+					</div>
 				</div>
 		        <div class="form-group">
 					<button class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)">Register</button>
@@ -71,11 +102,11 @@
 						required>
 					</div>
 
-					 <div class="help-block" ng-messages="loginForm.username.$error" ng-if="loginForm.username.$touched">
-						 <p ng-message="minlength">Provided username is too short.</p>
-						 <p ng-message="maxlength">Provided username is too long.</p>
-						 <p ng-message="required">Username is required.</p>
-					 </div>
+					<div class="help-block" ng-messages="loginForm.username.$error" ng-if="loginForm.username.$touched">
+						<p ng-message="minlength">Provided username is too short.</p>
+						<p ng-message="maxlength">Provided username is too long.</p>
+					  <p ng-message="required">Username is required.</p>
+					</div>
 				</div>
 				<div ng-class="{ 'has-error': loginForm.password.$touched && loginForm.password.$invalid }">
 					<div class="form-group input-group">
