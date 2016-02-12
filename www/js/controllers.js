@@ -7,7 +7,7 @@ var httpPost = function(http, url, params) {
 	});
 };
 
-var app = angular.module('tram', ['ngCookies', 'angularFileUpload', 'duScroll']);
+var app = angular.module('tram', ['ngCookies', 'ngMessages', 'angularFileUpload', 'duScroll']);
 app.controller("mainCtrl", function($scope, $http, $cookies) {
 	$scope.sid = $cookies.get('sid') || false;
 	$scope.storeSid = function(sid) {
