@@ -1,0 +1,52 @@
+mixin authControl(formName, controlName, icon, errors)
+  div(ng-class!="{ 'has-error': #{formName}.#{controlName}.$touched && #{formName}.#{controlName}.$invalid }")
+    div(class="form-group input-group")
+        span(class="input-group-addon"): i(class="glyphicon glyphicon-#{icon}")
+        input(type="text" name="#{controlName}" class="form-control" placeholder="#{controlName}"
+      )&attributes(attributes)
+    .help-block(ng-messages="#{formName}.#{controlName}.$error" ng-if="#{formName}.#{controlName}.$touched")
+      each message, errName in errors
+        p(ng-message=errName)= message
+
+- var usernameErrors = {}
+- usernameErrors.minlength = 'Provided username is too short.'
+- usernameErrors.maxlength = 'Provided username is too long.'
+- usernameErrors.required = 'Username is required.'
+
+- var passwordErrors = {}
+- passwordErrors.minlength = 'Provided password is too short.'
+- passwordErrors.maxlength = 'Provided password is too long.'
+- passwordErrors.required = 'Password is required.'
+
+.row(style="margin-top: 10px")
+  div(ng-show="!isAuthorized()" ng-controller="authCtrl")
+    div(class="jumbotron col-md-8")
+      h1 Welcome to CONTRA
+      h2 What is it?
+      p CONTRA is a distributed computation system, build around of TRANSIMS 4 execution of
+        | transport simulation tasks
+      h2 How can I try it?
+      p If you are already registered, then fill the login form. Otherwise you are
+        | welcome to proceed with registration by clicking a "register me" link below the login form
+    .col-md-4
+      div(ng-show="useRegistration()")
+        form(name="registrationForm" class="col-sm-12 col-md-10 col-md-offset-1")
+          h1(align="center") Register
+          +authControl('registrationForm', 'username', 'user', usernameErrors)(ng-model="user.username", ng-minlength="4", ng-maxlength="20", required)
+          +authControl('registrationForm', 'password', 'lock', passwordErrors)(type='password', ng-model="user.password", ng-minlength="6", ng-maxlength="32", required)
+          +authControl('registrationForm', 'email', 'envelope', {
+              'email': 'Wrong email format.',
+              'required': 'Email is required.'
+            })(type='email', placeholder="e-mail", ng-model="user.email", required)
+          div(class="form-group")
+            button(class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)") Register
+          div(class="form-group") or <a ng-click="signinBy('login')" href="#">[sign in]</a>
+
+      div(ng-show="useLogin()")
+        form(name="loginForm" class="col-sm-12 col-md-10 col-md-offset-1")
+          h1(align="center") Login
+          +authControl('loginForm', 'username', 'user', usernameErrors)(ng-model="user.username", ng-minlength="4", ng-maxlength="20", required)
+          +authControl('loginForm', 'password', 'lock', passwordErrors)(type='password', ng-model="user.password", ng-minlength="6", ng-maxlength="32", required)
+          .form-group
+            button(class="btn btn-def btn-block" ng-disabled="loginForm.$invalid" ng-click="login(user)") Login
+          .form-group or <a ng-click="signinBy('registration')" href="#">[register me]</a>
