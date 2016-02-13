@@ -52,12 +52,13 @@ html(lang="ru" ng-app="tram")
             pre /a/b/c/file1
               | /a/b/d/file2
             | Then the script is expected to run from <code>/a/b/</code>
+          
+          div(ng-controller="dataUploadCtrl")
+            include ./includes/uploadsTable.jade
+            br/
 
-          include ./includes/uploadsTable.jade
-          br/
-
-          +glyphButton('upload', 'Execute')(ng-click="execute()", ng-disabled="!readyToExecute()")
-          a(style={ "magin-left": "10px" }, class="btn btn-default", href="{{ outputDownloadUrl }}", target="_blank", ng-disabled="!hasDownloadableOutput()")
-            span(class="glyphicon glyphicon-download")
-            |  Download output
-          pre#output {{ task.Output }}
+            +glyphButton('upload', 'Execute')(ng-click="execute()", ng-disabled="!readyToExecute()")
+            a(style={ "magin-left": "10px" }, class="btn btn-default", href="{{ outputDownloadUrl }}", target="_blank", ng-disabled="!hasDownloadableOutput()")
+              span(class="glyphicon glyphicon-download")
+              |  Download output
+            pre#output {{ task.Output }}
