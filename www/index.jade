@@ -1,3 +1,9 @@
+mixin glyphButton(icon, text)
+  button(type="button", class="btn btn-def")&attributes(attributes)
+    span(class="glyphicon glyphicon-#{icon}")
+    = ' ' + text
+
+
 doctype html
 html(lang="ru" ng-app="tram")
   head
@@ -26,9 +32,7 @@ html(lang="ru" ng-app="tram")
         div(ng-show="isAuthorized()")
           div.page-header(ng-controller="greeterCtrl")
             h1 Greetings {{ user.username }} <small>&lt;{{ user.email }}&gt;</small> 
-              button(class="btn btn-def" ng-click="logout()")
-                span(class="glyphicon glyphicon-off")
-                |  Logout
+              +glyphButton('off', 'Logout')(ng-click="logout()")
           h3 Quick start
           p
             b Step 1: 
@@ -52,10 +56,8 @@ html(lang="ru" ng-app="tram")
           include ./includes/uploadsTable.jade
           br/
 
-          button(type="button" class="btn btn-def" ng-click="execute()" ng-disabled="!readyToExecute()")
-            span(class="glyphicon glyphicon-upload")
-            |  Execute
-          a(class="btn btn-default" href="{{ outputDownloadUrl }}" target="_blank" ng-disabled="!hasDownloadableOutput()")
+          +glyphButton('upload', 'Execute')(ng-click="execute()", ng-disabled="!readyToExecute()")
+          a(style={ "magin-left": "10px" }, class="btn btn-default", href="{{ outputDownloadUrl }}", target="_blank", ng-disabled="!hasDownloadableOutput()")
             span(class="glyphicon glyphicon-download")
             |  Download output
           pre#output {{ task.Output }}
