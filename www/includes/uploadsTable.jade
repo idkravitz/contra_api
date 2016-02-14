@@ -9,7 +9,7 @@ mixin uploadsTable(kind)
               th= name
         tbody
           tr(ng-repeat="item in uploaded#{kind}")
-            td <strong>{{ item.Filename }}</strong>
+            td: strong {{ item.Filename }}
             td {{ item.Md5 }}
             td {{ item.UploadDate }}
             td {{ item.Size }}
