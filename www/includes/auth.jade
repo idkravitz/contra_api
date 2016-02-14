@@ -21,14 +21,14 @@ mixin authControl(formName, controlName, icon, errors)
 .row(style="margin-top: 10px")
   div(ng-show="!isAuthorized()" ng-controller="authCtrl")
     div(class="jumbotron col-md-8")
-      h1 Welcome to CONTRA 0.1
-      h2 What is it?
+      h2 Welcome to CONTRA 0.1
+      h3 What is it?
       p CONTRA is a distributed computation system, build around of TRANSIMS 4 execution of
         | transport simulation tasks
-      h2 How can I try it?
+      h3 How can I try it?
       p If you are already registered, then fill the login form. Otherwise you are
         | welcome to proceed with registration by clicking a "register me" link below the login form
-      h2 Acknowledgement
+      h3 Acknowledgement
       p The primary development of CONTRA was supported by the Russian Foundation for Basic Research 
     .col-md-4
       div(ng-show="useRegistration()")
