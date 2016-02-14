@@ -20,17 +20,8 @@ mixin authControl(formName, controlName, icon, errors)
 
 .row(style="margin-top: 10px")
   div(ng-show="!isAuthorized()" ng-controller="authCtrl")
-    div(class="jumbotron col-md-8")
-      h2 Welcome to CONTRA 0.1
-      h3 What is it?
-      p CONTRA is a distributed computation system, build around of TRANSIMS 4 execution of
-        | transportation simulation tasks
-      h3 How can I try it?
-      p If you are already registered, just fill the login form. Otherwise you are
-        | welcome to proceed with registration by clicking a "register me" link below the login form
-      h3 Acknowledgement
-      p The primary development of CONTRA was supported by the Russian Foundation for Basic Research
-        | under the grant 13-07-12010
+    .col-md-8(class="jumbotron")
+      include:markdown-it welcome.md
     .col-md-4
       div(ng-show="useRegistration()")
         form(name="registrationForm" class="col-sm-12 col-md-10 col-md-offset-1")
@@ -41,9 +32,9 @@ mixin authControl(formName, controlName, icon, errors)
               'email': 'Wrong email format.',
               'required': 'Email is required.'
             })(type='email', placeholder="e-mail", ng-model="user.email", required)
-          div(class="form-group")
+          .form-group
             button(class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)") Register
-          div(class="form-group") or <a ng-click="signinBy('login')" href="#">[sign in]</a>
+          .form-group or <a ng-click="signinBy('login')" href="#">[sign in]</a>
 
       div(ng-show="useLogin()")
         form(name="loginForm" class="col-sm-12 col-md-10 col-md-offset-1")
