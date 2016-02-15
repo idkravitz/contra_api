@@ -30,7 +30,7 @@ html(lang="ru" ng-app="tram")
         include ./includes/auth.jade
         
         div(ng-show="isAuthorized()")
-          div.page-header(ng-controller="greeterCtrl")
+          .page-header(ng-controller="greeterCtrl")
             h1 Greetings {{ user.username }} <small>&lt;{{ user.email }}&gt;</small> 
               +glyphButton('off', 'Logout')(ng-click="logout()")
           include:markdown-it ./includes/quickstart.md

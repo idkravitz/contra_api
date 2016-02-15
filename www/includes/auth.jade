@@ -32,6 +32,9 @@ mixin authControl(formName, controlName, icon, errors)
               'email': 'Wrong email format.',
               'required': 'Email is required.'
             })(type='email', placeholder="e-mail", ng-model="user.email", required)
+          .has-error
+            .help-block(ng-messages="serverErrors" ng-if="registrationForm.$submitted" data-ng-cloak)
+                p(ng-message='userExists') User with provided username already exists.
           .form-group
             button(class="btn btn-def btn-block" ng-disabled="registrationForm.$invalid" ng-click="register(user)") Register
           .form-group or <a ng-click="signinBy('login')" href="#">[sign in]</a>
@@ -41,6 +44,9 @@ mixin authControl(formName, controlName, icon, errors)
           h1(align="center") Login
           +authControl('loginForm', 'username', 'user', usernameErrors)(ng-model="user.username", ng-minlength="4", ng-maxlength="20", required)
           +authControl('loginForm', 'password', 'lock', passwordErrors)(type='password', ng-model="user.password", ng-minlength="6", ng-maxlength="32", required)
+          .has-error
+            .help-block(ng-messages="serverErrors" ng-if="loginForm.$submitted" data-ng-cloak)
+                p(ng-message='badUsernameOrPassword') Bad username or password.
           .form-group
             button(class="btn btn-def btn-block" ng-disabled="loginForm.$invalid" ng-click="login(user)") Login
           .form-group or <a ng-click="signinBy('registration')" href="#">[register me]</a>

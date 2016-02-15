@@ -33,12 +33,26 @@ app.controller("mainCtrl", function($scope, $http, $cookies) {
 	$scope.useLogin = function() { return $scope.authWay == "login"; }
 });
 app.controller('authCtrl', function($scope, $http) {
+	$scope.serverErrors = {
+		"badUsernameOrPassword": false,
+		"userExists": false
+	};
 	var authHandler = function(response) {
 		console.log(response);
+		$scope.serverErrors.badUsernameOrPassword = false;
+		$scope.serverErrors.userExists = false;
+		if (response.status == "error") {
+			if (response.error == "ERROR_BAD_PASSWORD_OR_USERNAME") {
+				$scope.serverErrors.badUsernameOrPassword = true;
+			}
+			if (response.error == "ERROR_USER_EXISTS") {
+				$scope.serverErrors.userExists = true;
+			}
+		}
 		if ("sid" in response) {
 			$scope.storeSid(response.sid);
 		}
-	}
+	};
 	$scope.register = function (user) {
 		httpPost($http, "user/register", user).success(authHandler);
 	};
@@ -141,11 +155,7 @@ app.controller('dataUploadCtrl', ['$scope', '$document', '$http', '$timeout', 'F
 			if (response.status == 'ok') {
 				$scope.task.id = response.task_id;
 				$scope.pollTaskStatus();
-				// $timeout($scope.pollTaskStatus, 3000);
 			}
-			// console.log(response);
-			// console.log(response.control_meta);
-			// console.log(response.data_meta);
 		});
 	};
 }]);
