@@ -28,7 +28,9 @@ RUN chown -R contra:contra www src
 USER contra
 
 RUN . ~/.profile && nvm use 5.6.0 && jade www && mv ~/.oldprofile ~/.profile && rm -rf ~/.nvm
-RUN cd src/github.com/kravitz/contra_api && ~/bin/glide up
+# Manual caching: if developer runs glide up on his working dir, then
+# build would use versions, pulled externally, instead of trying to glide up internally
+RUN cd src/github.com/kravitz/contra_api && [ -d vendor ] || ~/bin/glide up
 RUN go install github.com/kravitz/contra_api
 EXPOSE 8080
 
