@@ -1,0 +1,17 @@
+package: github.com/kravitz/tram_api
+import:
+- package: github.com/streadway/amqp
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+- package: github.com/kravitz/contra_lib
+  subpackages:
+    - www
+    - utils
+    - model
+  vcs: git
+  version: e19871ab2e7b2dc21d9f86238fcdcd11e4b44f3e
+  repo: git://github.com/kravitz/contra_lib

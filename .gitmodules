@@ -1,3 +1,0 @@
-[submodule "tram-commons"]
-	path = tram-commons
-	url = git://github.com/kravitz/tram_lib

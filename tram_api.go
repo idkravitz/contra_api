@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 	// "encoding/json"
-	"github.com/kravitz/tram_api/tram-commons/db"
-	"github.com/kravitz/tram_api/tram-commons/model"
-	"github.com/kravitz/tram_api/tram-commons/util"
-	"github.com/kravitz/tram_api/tram-commons/web"
+	"github.com/kravitz/contra_lib/db"
+	"github.com/kravitz/contra_lib/model"
+	"github.com/kravitz/contra_lib/util"
+	"github.com/kravitz/contra_lib/web"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -24,7 +24,7 @@ import (
 
 const saltSize int = 8
 
-type tramAPIApp struct {
+type contraAPIApp struct {
 	QCon           *amqp.Connection
 	MgoSession     *mgo.Session
 	UsernameRegexp *regexp.Regexp
@@ -43,7 +43,7 @@ const (
 
 // TODO 1: Storage location
 
-func (app *tramAPIApp) uploadComputationData(response bson.M, req *http.Request) {
+func (app *contraAPIApp) uploadComputationData(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -58,7 +58,7 @@ func (app *tramAPIApp) uploadComputationData(response bson.M, req *http.Request)
 	response["id"] = fid
 }
 
-func (app *tramAPIApp) uploadControlScript(response bson.M, req *http.Request) {
+func (app *contraAPIApp) uploadControlScript(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -74,7 +74,7 @@ func (app *tramAPIApp) uploadControlScript(response bson.M, req *http.Request) {
 }
 
 // TODO make fixed type return
-func (app *tramAPIApp) uploadFile(req *http.Request, formFile string, collection string, owner string) interface{} {
+func (app *contraAPIApp) uploadFile(req *http.Request, formFile string, collection string, owner string) interface{} {
 	file, header, err := req.FormFile(formFile)
 
 	if err != nil {
@@ -102,7 +102,7 @@ func (app *tramAPIApp) uploadFile(req *http.Request, formFile string, collection
 	return out.Id()
 }
 
-func (app *tramAPIApp) usernameValidator(username string) string {
+func (app *contraAPIApp) usernameValidator(username string) string {
 	if len(username) < 4 {
 		return errorUsernameTooShort
 	}
@@ -126,7 +126,7 @@ func getSid() string {
 	return string(sid)
 }
 
-func (app *tramAPIApp) getUserSession(username string) *model.Session {
+func (app *contraAPIApp) getUserSession(username string) *model.Session {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 
@@ -158,7 +158,7 @@ func putError(response bson.M, err string) {
 	response["error"] = err
 }
 
-func (app *tramAPIApp) userRegister(response bson.M, req *http.Request) {
+func (app *contraAPIApp) userRegister(response bson.M, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	email := req.FormValue("email")
@@ -205,7 +205,7 @@ func (app *tramAPIApp) userRegister(response bson.M, req *http.Request) {
 	log.Println(fmt.Sprintf("His session is: %v", util.Qjson(userSession)))
 }
 
-func (app *tramAPIApp) retrieveUserSession(s *mgo.Session, sid string) (session *model.Session) {
+func (app *contraAPIApp) retrieveUserSession(s *mgo.Session, sid string) (session *model.Session) {
 	session = &model.Session{}
 	err := db.GetCol(s, "sessions").Find(bson.M{"sid": sid}).One(session)
 	if err != nil {
@@ -218,7 +218,7 @@ func (app *tramAPIApp) retrieveUserSession(s *mgo.Session, sid string) (session 
 	return session
 }
 
-func (app *tramAPIApp) getUserInfo(response bson.M, req *http.Request) {
+func (app *contraAPIApp) getUserInfo(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 	s := app.MgoSession.Copy()
 	defer s.Close()
@@ -238,7 +238,7 @@ func (app *tramAPIApp) getUserInfo(response bson.M, req *http.Request) {
 	}
 }
 
-func (app *tramAPIApp) logout(response bson.M, req *http.Request) {
+func (app *contraAPIApp) logout(response bson.M, req *http.Request) {
 	sid := req.FormValue("sid")
 
 	s := app.MgoSession.Copy()
@@ -248,7 +248,7 @@ func (app *tramAPIApp) logout(response bson.M, req *http.Request) {
 	response["status"] = "ok"
 }
 
-func (app *tramAPIApp) login(response bson.M, req *http.Request) {
+func (app *contraAPIApp) login(response bson.M, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	response["status"] = "ok"
@@ -268,7 +268,7 @@ func (app *tramAPIApp) login(response bson.M, req *http.Request) {
 	log.Println(fmt.Sprintf("User login: %v", user.Username))
 }
 
-func (app *tramAPIApp) removeUploadedData(response bson.M, r *http.Request) {
+func (app *contraAPIApp) removeUploadedData(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	dfid := r.FormValue("data_file_id")
 
@@ -291,7 +291,7 @@ func (app *tramAPIApp) removeUploadedData(response bson.M, r *http.Request) {
 	response["status"] = "ok"
 }
 
-func (app *tramAPIApp) removeUploadedControl(response bson.M, r *http.Request) {
+func (app *contraAPIApp) removeUploadedControl(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	cfid := r.FormValue("control_file_id")
 
@@ -331,7 +331,7 @@ func getFileMeta(s *mgo.Session, fsName string, fileID string) *model.FileDescri
 	return result.Metadata
 }
 
-func (app *tramAPIApp) enqueueExecute(response bson.M, r *http.Request) {
+func (app *contraAPIApp) enqueueExecute(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	dfid := r.FormValue("data_file_id")
 	cfid := r.FormValue("control_file_id")
@@ -401,7 +401,7 @@ func (app *tramAPIApp) enqueueExecute(response bson.M, r *http.Request) {
 	response["task_id"] = task.Id
 }
 
-func (app *tramAPIApp) getTaskStatus(response bson.M, r *http.Request) {
+func (app *contraAPIApp) getTaskStatus(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	taskID := r.FormValue("task_id")
 	s := app.MgoSession.Copy()
@@ -424,7 +424,7 @@ func (app *tramAPIApp) getTaskStatus(response bson.M, r *http.Request) {
 	response["task"] = task
 }
 
-func (app *tramAPIApp) downloadTaskOutput(w http.ResponseWriter, r *http.Request) {
+func (app *contraAPIApp) downloadTaskOutput(w http.ResponseWriter, r *http.Request) {
 	lastSlashIdx := strings.LastIndex(r.RequestURI, "/") + 1
 	hexID := r.RequestURI[lastSlashIdx:]
 
@@ -460,7 +460,7 @@ func (app *tramAPIApp) downloadTaskOutput(w http.ResponseWriter, r *http.Request
 	io.Copy(w, fh)
 }
 
-func (app *tramAPIApp) fetchFilesMeta(filestype string, sid string, response bson.M) {
+func (app *contraAPIApp) fetchFilesMeta(filestype string, sid string, response bson.M) {
 	s := app.MgoSession.Copy()
 	defer s.Close()
 	session := app.retrieveUserSession(s, sid)
@@ -488,19 +488,19 @@ func (app *tramAPIApp) fetchFilesMeta(filestype string, sid string, response bso
 	response["meta"] = result
 }
 
-func (app *tramAPIApp) listUploadedData(response bson.M, r *http.Request) {
+func (app *contraAPIApp) listUploadedData(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	app.fetchFilesMeta("data", sid, response)
 	log.Println(util.Qjson(response))
 }
 
-func (app *tramAPIApp) listUploadedControl(response bson.M, r *http.Request) {
+func (app *contraAPIApp) listUploadedControl(response bson.M, r *http.Request) {
 	sid := r.FormValue("sid")
 	app.fetchFilesMeta("control", sid, response)
 	log.Println(util.Qjson(response))
 }
 
-func (app *tramAPIApp) Run() {
+func (app *contraAPIApp) Run() {
 	app.UsernameRegexp, _ = regexp.Compile("^[_a-zA-Z][_0-9a-zA-Z]+")
 
 	// MONGO INIT SECTION
@@ -546,13 +546,13 @@ func (app *tramAPIApp) Run() {
 	http.ListenAndServe(":8080", mux)
 }
 
-func (app *tramAPIApp) Stop() {
+func (app *contraAPIApp) Stop() {
 	app.MgoSession.Close()
 	app.QCon.Close()
 }
 
 func main() {
-	app := tramAPIApp{}
+	app := contraAPIApp{}
 
 	defer app.Stop()
 	app.Run()
